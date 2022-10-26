@@ -44,7 +44,7 @@ class MethodFilterNode(template.Node):
         self.nodelist = nodelist
 
     def render(self, context):
-        swagger_method = context.get('swagger_method')
-        if not swagger_method or swagger_method.upper() in self.allowed_methods:
+        openapi_method = context.get('openapi_method')
+        if not openapi_method or openapi_method.upper() in self.allowed_methods:
             return self.nodelist.render(context)
         return ''

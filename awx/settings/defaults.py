@@ -351,8 +351,8 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSION': 'v2',
     # For swagger schema generation
     # see https://github.com/encode/django-rest-framework/pull/6532
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.AutoSchema',
-    # 'URL_FORMAT_OVERRIDE': None,
+    # 'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.AutoSchema',
+    #'URL_FORMAT_OVERRIDE': None,
 }
 
 AUTHENTICATION_BACKENDS = (

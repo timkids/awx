@@ -69,6 +69,24 @@ class Pagination(pagination.PageNumberPagination):
             return Response({'results': data})
         return super(Pagination, self).get_paginated_response(data)
 
+    def get_paginated_response_schema(self, schema):
+        result_schema = super(Pagination, self).get_paginated_response_schema(schema)
+
+        pagination_documentation = {
+            'count': {'description': 'Total number of results found for the given query.'},
+            'next': {'description': 'Provides link to additional results if there are more than will fit on a single page.'},
+            'previous': {'description': 'Provides link to previous results if there are more than will fit on a single page.'},
+        }
+
+        result_properties = {}
+        for property in result_schema['properties']:
+            result_properties[property] = result_schema['properties'][property]
+            if property in pagination_documentation:
+                result_properties[property].update(pagination_documentation[property])
+
+        result_schema['properties'] = result_properties
+        return result_schema
+
 
 class LimitPagination(pagination.BasePagination):
     default_limit = api_settings.PAGE_SIZE

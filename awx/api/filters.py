@@ -434,6 +434,27 @@ class OrderByBackend(BaseFilterBackend):
             return (ordering,)
         return ordering
 
+    def get_schema_operation_parameters(self, view):
+        return [
+            {
+                'name': 'order_by',
+                'required': False,
+                'in': 'query',
+                'description': force_str('To specify that results are returned in a particular order'),
+                'examples': {
+                    'onefield': {'value': 'name', 'summary': 'Order by the field name.'},
+                    'reversesort': {'value': '-name', 'summary': 'Prefix the field name with a dash - to sort in reverse.'},
+                    'multifields': {
+                        'value': 'name,some_other_field',
+                        'summary': 'Multiple sorting fields may be specified by separating the field names with a comma ,',
+                    },
+                },
+                'schema': {
+                    'type': 'string',
+                },
+            },
+        ]
+
     def _validate_ordering_fields(self, model, order_by):
         for field_name in order_by:
             # strip off the negation prefix `-` if it exists

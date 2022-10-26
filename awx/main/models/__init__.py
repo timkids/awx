@@ -69,6 +69,7 @@ from awx.main.models.mixins import (  # noqa
     TaskManagerJobMixin,
     TaskManagerProjectUpdateMixin,
     TaskManagerUnifiedJobMixin,
+    WebhookTemplateMixin,
 )
 from awx.main.models.notifications import Notification, NotificationTemplate, JobNotificationMixin  # noqa
 from awx.main.models.label import Label  # noqa

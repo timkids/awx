@@ -149,6 +149,7 @@ class SettingLoggingTest(GenericAPIView):
     serializer_class = SettingSingletonSerializer
     permission_classes = (IsSystemAdminOrAuditor,)
     filter_backends = []
+    operation_id_base = 'SettingLoggingTest'
 
     def post(self, request, *args, **kwargs):
         # Error if logging is not enabled

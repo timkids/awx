@@ -12,7 +12,7 @@ from awx.main.models import InstanceLink, Instance
 class MeshVisualizer(APIView):
     name = _("Mesh Visualizer")
     permission_classes = (IsSystemAdminOrAuditor,)
-    swagger_topic = "System Configuration"
+    openapi_tag = "System Configuration"
 
     def get(self, request, format=None):
         data = {

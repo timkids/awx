@@ -1,5 +1,6 @@
 # Ignore generated schema
 swagger.json
+openapi-schema.yml
 schema.json
 reference-schema.json
 

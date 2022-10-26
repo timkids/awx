@@ -21,6 +21,9 @@ from awx.api.views import (
     JobTemplateObjectRolesList,
     JobTemplateLabelList,
     JobTemplateCopy,
+    JobTemplateWebhookKey,
+    JobTemplateGithubWebhookReceiver,
+    JobTemplateGitlabWebhookReceiver,
 )
 
 
@@ -54,7 +57,10 @@ urls = [
     re_path(r'^(?P<pk>[0-9]+)/object_roles/$', JobTemplateObjectRolesList.as_view(), name='job_template_object_roles_list'),
     re_path(r'^(?P<pk>[0-9]+)/labels/$', JobTemplateLabelList.as_view(), name='job_template_label_list'),
     re_path(r'^(?P<pk>[0-9]+)/copy/$', JobTemplateCopy.as_view(), name='job_template_copy'),
-    re_path(r'^(?P<pk>[0-9]+)/', include('awx.api.urls.webhooks'), {'model_kwarg': 'job_templates'}),
+    re_path(r'^(?P<pk>[0-9]+)/webhook_key/$', JobTemplateWebhookKey.as_view(), name='webhook_key', kwargs={'model_kwarg': 'job_templates'}),
+    re_path(r'^(?P<pk>[0-9]+)/github/$', JobTemplateGithubWebhookReceiver.as_view(), name='webhook_receiver_github', kwargs={'model_kwarg': 'job_templates'}),
+    re_path(r'^(?P<pk>[0-9]+)/gitlab/$', JobTemplateGitlabWebhookReceiver.as_view(), name='webhook_receiver_gitlab', kwargs={'model_kwarg': 'job_templates'}),
+    # re_path(r'^(?P<pk>[0-9]+)/', include('awx.api.urls.webhooks'), {'model_kwarg': 'job_templates'}),
 ]
 
 __all__ = ['urls']

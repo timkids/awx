@@ -288,7 +288,7 @@ class APIView(views.APIView):
             'view': self,
             'docstring': type(self).__doc__ or '',
             'deprecated': getattr(self, 'deprecated', False),
-            'swagger_method': getattr(self.request, 'swagger_method', None),
+            'openapi_method': getattr(self, 'openapi_method', None),
         }
 
     @property
@@ -300,7 +300,7 @@ class APIView(views.APIView):
         context = self.get_description_context()
 
         description = render_to_string(template_list, context)
-        if context.get('deprecated') and context.get('swagger_method') is None:
+        if context.get('deprecated') and context.get('openapi_method') is None:
             # render deprecation messages at the very top
             description = '\n'.join([render_to_string('api/_deprecated.md', context), description])
         return description

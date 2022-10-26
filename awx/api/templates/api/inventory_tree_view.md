@@ -5,9 +5,3 @@ associated with the selected {{ model_verbose_name }}.
 
 The resulting data structure contains a list of root groups, with each group
 also containing a list of its children.
-
-## Results
-
-Each group data structure includes the following fields:
-
-{% include "api/_result_fields_common.md" %}

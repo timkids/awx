@@ -20,6 +20,9 @@ from awx.api.views import (
     WorkflowJobTemplateAccessList,
     WorkflowJobTemplateObjectRolesList,
     WorkflowJobTemplateLabelList,
+    WorkflowJobTemplateWebhookKey,
+    WorkflowJobTemplateGithubWebhookReceiver,
+    WorkflowJobTemplateGitlabWebhookReceiver,
 )
 
 
@@ -56,7 +59,20 @@ urls = [
     re_path(r'^(?P<pk>[0-9]+)/access_list/$', WorkflowJobTemplateAccessList.as_view(), name='workflow_job_template_access_list'),
     re_path(r'^(?P<pk>[0-9]+)/object_roles/$', WorkflowJobTemplateObjectRolesList.as_view(), name='workflow_job_template_object_roles_list'),
     re_path(r'^(?P<pk>[0-9]+)/labels/$', WorkflowJobTemplateLabelList.as_view(), name='workflow_job_template_label_list'),
-    re_path(r'^(?P<pk>[0-9]+)/', include('awx.api.urls.webhooks'), {'model_kwarg': 'workflow_job_templates'}),
+    re_path(r'^(?P<pk>[0-9]+)/webhook_key/$', WorkflowJobTemplateWebhookKey.as_view(), name='webhook_key', kwargs={'model_kwarg': 'workflow_job_templates'}),
+    re_path(
+        r'^(?P<pk>[0-9]+)/github/$',
+        WorkflowJobTemplateGithubWebhookReceiver.as_view(),
+        name='webhook_receiver_github',
+        kwargs={'model_kwarg': 'workflow_job_templates'},
+    ),
+    re_path(
+        r'^(?P<pk>[0-9]+)/gitlab/$',
+        WorkflowJobTemplateGitlabWebhookReceiver.as_view(),
+        name='webhook_receiver_gitlab',
+        kwargs={'model_kwarg': 'workflow_job_templates'},
+    ),
+    # re_path(r'^(?P<pk>[0-9]+)/', include('awx.api.urls.webhooks'), {'model_kwarg': 'workflow_job_templates'}),
 ]
 
 __all__ = ['urls']

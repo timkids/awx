@@ -124,6 +124,7 @@ class OrganizationAdminsList(BaseUsersList):
     parent_model = Organization
     relationship = 'admin_role.members'
     ordering = ('username',)
+    operation_id_base = 'OrganizationAdmins'
 
 
 class OrganizationProjectsList(SubListCreateAPIView):
@@ -139,7 +140,6 @@ class OrganizationExecutionEnvironmentsList(SubListCreateAttachDetachAPIView):
     parent_model = Organization
     relationship = 'executionenvironments'
     parent_key = 'organization'
-    swagger_topic = "Execution Environments"
 
 
 class OrganizationJobTemplatesList(SubListCreateAPIView):
@@ -188,18 +188,22 @@ class OrganizationNotificationTemplatesAnyList(SubListCreateAttachDetachAPIView)
 
 class OrganizationNotificationTemplatesStartedList(OrganizationNotificationTemplatesAnyList):
     relationship = 'notification_templates_started'
+    operation_id_base = 'OrganizationNotificationTemplatesStarted'
 
 
 class OrganizationNotificationTemplatesErrorList(OrganizationNotificationTemplatesAnyList):
     relationship = 'notification_templates_error'
+    operation_id_base = 'OrganizationNotificationTemplatesError'
 
 
 class OrganizationNotificationTemplatesSuccessList(OrganizationNotificationTemplatesAnyList):
     relationship = 'notification_templates_success'
+    operation_id_base = 'OrganizationNotificationTemplatesSuccess'
 
 
 class OrganizationNotificationTemplatesApprovalList(OrganizationNotificationTemplatesAnyList):
     relationship = 'notification_templates_approvals'
+    operation_id_base = 'OrganizationNotificationTemplatesApproval'
 
 
 class OrganizationInstanceGroupsList(SubListAttachDetachAPIView):

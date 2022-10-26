@@ -4,7 +4,7 @@
 from django.urls import re_path
 
 from awx.api.views import (
-    OAuth2ApplicationList,
+    OAuth2AppsApplicationList,
     OAuth2ApplicationDetail,
     ApplicationOAuth2TokenList,
     OAuth2ApplicationActivityStreamList,
@@ -15,7 +15,7 @@ from awx.api.views import (
 
 
 urls = [
-    re_path(r'^applications/$', OAuth2ApplicationList.as_view(), name='o_auth2_application_list'),
+    re_path(r'^applications/$', OAuth2AppsApplicationList.as_view(), name='o_auth2_application_list'),
     re_path(r'^applications/(?P<pk>[0-9]+)/$', OAuth2ApplicationDetail.as_view(), name='o_auth2_application_detail'),
     re_path(r'^applications/(?P<pk>[0-9]+)/tokens/$', ApplicationOAuth2TokenList.as_view(), name='o_auth2_application_token_list'),
     re_path(r'^applications/(?P<pk>[0-9]+)/activity_stream/$', OAuth2ApplicationActivityStreamList.as_view(), name='o_auth2_application_activity_stream_list'),

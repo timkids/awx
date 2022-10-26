@@ -247,6 +247,13 @@ receiver:
 	fi; \
 	$(PYTHON) manage.py run_callback_receiver
 
+openapi-doc:
+	@if [ "$(VENV_BASE)" ]; then \
+		. $(VENV_BASE)/awx/bin/activate; \
+	fi; \
+	$(PYTHON) manage.py generateschema --file openapi-schema.yml --generator_class awx.api.swagger.SuperUserSchemaGenerator
+	sed -i 's/!!python\/.*//g' openapi-schema.yml
+
 nginx:
 	nginx -g "daemon off;"
 
@@ -523,6 +530,9 @@ docker-compose-runtest: awx/projects docker-compose-sources
 
 docker-compose-build-swagger: awx/projects docker-compose-sources
 	docker-compose -f tools/docker-compose/_sources/docker-compose.yml run --rm --service-ports --no-deps awx_1 /start_tests.sh swagger
+
+docker-compose-build-openapi: awx/projects docker-compose-sources
+	docker-compose -f tools/docker-compose/_sources/docker-compose.yml run --rm --service-ports --no-deps awx_1 make openapi-doc
 
 SCHEMA_DIFF_BASE_BRANCH ?= devel
 detect-schema-change: genschema

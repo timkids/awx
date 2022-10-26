@@ -2,13 +2,8 @@
 
 # Create {{ model_verbose_name|title|anora }} for {{ parent_model_verbose_name|title|anora }}:
 
-Make a POST request to this resource with the following {{ model_verbose_name }}
-fields to create a new {{ model_verbose_name }} associated with this
+Make a POST request to this resource create a new {{ model_verbose_name }} associated with this
 {{ parent_model_verbose_name }}.
-
-{% with write_only=1 %}
-{% include "api/_result_fields_common.md" %}
-{% endwith %}
 
 {% block post_create %}{% endblock %}
 

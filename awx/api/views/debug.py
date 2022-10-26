@@ -10,10 +10,15 @@ from awx.main.scheduler import TaskManager, DependencyManager, WorkflowManager
 
 
 class TaskManagerDebugView(APIView):
+    '''
+    Debug task manager
+    '''
+
     _ignore_model_permissions = True
     exclude_from_schema = True
     permission_classes = [AllowAny]
     prefix = 'Task'
+    openapi_tag = 'Debug'
 
     def get(self, request):
         TaskManager().schedule()
@@ -25,10 +30,15 @@ class TaskManagerDebugView(APIView):
 
 
 class DependencyManagerDebugView(APIView):
+    '''
+    Debug dependency manager
+    '''
+
     _ignore_model_permissions = True
     exclude_from_schema = True
     permission_classes = [AllowAny]
     prefix = 'Dependency'
+    openapi_tag = 'Debug'
 
     def get(self, request):
         DependencyManager().schedule()
@@ -40,10 +50,15 @@ class DependencyManagerDebugView(APIView):
 
 
 class WorkflowManagerDebugView(APIView):
+    '''
+    Debug workflow manager
+    '''
+
     _ignore_model_permissions = True
     exclude_from_schema = True
     permission_classes = [AllowAny]
     prefix = 'Workflow'
+    openapi_tag = 'Debug'
 
     def get(self, request):
         WorkflowManager().schedule()
@@ -58,6 +73,7 @@ class DebugRootView(APIView):
     _ignore_model_permissions = True
     exclude_from_schema = True
     permission_classes = [AllowAny]
+    openapi_tag = 'Debug'
 
     def get(self, request, format=None):
         '''List of available debug urls'''

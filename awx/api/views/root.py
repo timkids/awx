@@ -31,37 +31,68 @@ from awx.main.constants import PRIVILEGE_ESCALATION_METHODS
 from awx.main.models import Project, Organization, Instance, InstanceGroup, JobTemplate
 from awx.main.utils import set_environ
 from awx.main.utils.licensing import get_licenser
+from rest_framework import serializers
 
 logger = logging.getLogger('awx.api.views.root')
 
 
+class APIVersion:
+    def __init__(self, description):
+        self.available_versions = None
+        self.description = description
+        self.current_version = None
+        self.custom_logo = None
+        self.custom_login_info = None
+        self.login_redirect_override = None
+        self.oauth2 = None
+
+
+class APIVersionSerializer(serializers.Serializer):
+    available_versions = serializers.ListField(child=serializers.URLField())
+    description = serializers.CharField(max_length=200)
+    current_version = serializers.URLField()
+    custom_logo = serializers.CharField(max_length=200)
+    custom_login_info = serializers.CharField(max_length=200)
+    login_redirect_override = serializers.CharField(max_length=200)
+    oauth2 = serializers.URLField()
+
+
 class ApiRootView(APIView):
+    '''
+    The root of the Ansible Automation Platform REST API.
+    '''
+
     permission_classes = (AllowAny,)
-    name = _('REST API')
+    name = _('Ansible Automation Platform REST API')
     versioning_class = None
-    swagger_topic = 'Versioning'
+    openapi_tag = 'Versioning'
+
+    def get_serializer(self, *args, **kwargs):
+        return APIVersionSerializer(*args, **kwargs)
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request, format=None):
-        '''List supported API versions'''
+        '''
+        List supported API versions
+        '''
 
         v2 = reverse('api:api_v2_root_view', kwargs={'version': 'v2'})
-        data = OrderedDict()
-        data['description'] = _('AWX REST API')
-        data['current_version'] = v2
-        data['available_versions'] = dict(v2=v2)
-        data['oauth2'] = drf_reverse('api:oauth_authorization_root_view')
-        data['custom_logo'] = settings.CUSTOM_LOGO
-        data['custom_login_info'] = settings.CUSTOM_LOGIN_INFO
-        data['login_redirect_override'] = settings.LOGIN_REDIRECT_OVERRIDE
-        return Response(data)
+        result = APIVersion(_('Ansible Automation Platform REST API'))
+        result.current_version = v2
+        result.available_versions = dict(v2=v2)
+        result.oauth2 = drf_reverse('api:oauth_authorization_root_view')
+        result.custom_logo = settings.CUSTOM_LOGO
+        result.custom_login_info = settings.CUSTOM_LOGIN_INFO
+        result.login_redirect_override = settings.LOGIN_REDIRECT_OVERRIDE
+
+        return Response(APIVersionSerializer(result).data)
 
 
 class ApiOAuthAuthorizationRootView(APIView):
     permission_classes = (AllowAny,)
     name = _("API OAuth 2 Authorization Root")
     versioning_class = None
-    swagger_topic = 'Authentication'
+    openapi_tag = 'Authentication'
 
     def get(self, request, format=None):
         data = OrderedDict()
@@ -71,57 +102,152 @@ class ApiOAuthAuthorizationRootView(APIView):
         return Response(data)
 
 
+class APIVersionEntrypoints:
+    ping = None
+    instances = None
+    instance_groups = None
+    config = None
+    settings = None
+    me = None
+    dashboard = None
+    organizations = None
+    users = None
+    execution_environments = None
+    projects = None
+    project_updates = None
+    teams = None
+    credentials = None
+    credential_types = None
+    credential_input_sources = None
+    applications = None
+    tokens = None
+    metrics = None
+    inventory = None
+    inventory_sources = None
+    inventory_updates = None
+    groups = None
+    hosts = None
+    job_templates = None
+    jobs = None
+    ad_hoc_commands = None
+    system_job_templates = None
+    system_jobs = None
+    schedules = None
+    roles = None
+    notification_templates = None
+    notifications = None
+    labels = None
+    unified_job_templates = None
+    unified_jobs = None
+    activity_stream = None
+    workflow_job_templates = None
+    workflow_jobs = None
+    workflow_approvals = None
+    workflow_job_template_nodes = None
+    workflow_job_nodes = None
+    mesh_visualizer = None
+
+
+class APIVersionEntrypointsSerializer(serializers.Serializer):
+    ping = serializers.URLField()
+    instances = serializers.URLField()
+    instance_groups = serializers.URLField()
+    config = serializers.URLField()
+    settings = serializers.URLField()
+    me = serializers.URLField()
+    dashboard = serializers.URLField()
+    organizations = serializers.URLField()
+    users = serializers.URLField()
+    execution_environments = serializers.URLField()
+    projects = serializers.URLField()
+    project_updates = serializers.URLField()
+    teams = serializers.URLField()
+    credentials = serializers.URLField()
+    credential_types = serializers.URLField()
+    credential_input_sources = serializers.URLField()
+    applications = serializers.URLField()
+    tokens = serializers.URLField()
+    metrics = serializers.URLField()
+    inventory = serializers.URLField()
+    inventory_sources = serializers.URLField()
+    inventory_updates = serializers.URLField()
+    groups = serializers.URLField()
+    hosts = serializers.URLField()
+    job_templates = serializers.URLField()
+    jobs = serializers.URLField()
+    ad_hoc_commands = serializers.URLField()
+    system_job_templates = serializers.URLField()
+    system_jobs = serializers.URLField()
+    schedules = serializers.URLField()
+    roles = serializers.URLField()
+    notification_templates = serializers.URLField()
+    notifications = serializers.URLField()
+    labels = serializers.URLField()
+    unified_job_templates = serializers.URLField()
+    unified_jobs = serializers.URLField()
+    activity_stream = serializers.URLField()
+    workflow_job_templates = serializers.URLField()
+    workflow_jobs = serializers.URLField()
+    workflow_approvals = serializers.URLField()
+    workflow_job_template_nodes = serializers.URLField()
+    workflow_job_nodes = serializers.URLField()
+    mesh_visualizer = serializers.URLField()
+
+
 class ApiVersionRootView(APIView):
     permission_classes = (AllowAny,)
-    swagger_topic = 'Versioning'
+    openapi_tag = 'Versioning'
+
+    def get_serializer(self, *args, **kwargs):
+        return APIVersionEntrypointsSerializer(*args, **kwargs)
 
     def get(self, request, format=None):
         '''List top level resources'''
-        data = OrderedDict()
-        data['ping'] = reverse('api:api_v2_ping_view', request=request)
-        data['instances'] = reverse('api:instance_list', request=request)
-        data['instance_groups'] = reverse('api:instance_group_list', request=request)
-        data['config'] = reverse('api:api_v2_config_view', request=request)
-        data['settings'] = reverse('api:setting_category_list', request=request)
-        data['me'] = reverse('api:user_me_list', request=request)
-        data['dashboard'] = reverse('api:dashboard_view', request=request)
-        data['organizations'] = reverse('api:organization_list', request=request)
-        data['users'] = reverse('api:user_list', request=request)
-        data['execution_environments'] = reverse('api:execution_environment_list', request=request)
-        data['projects'] = reverse('api:project_list', request=request)
-        data['project_updates'] = reverse('api:project_update_list', request=request)
-        data['teams'] = reverse('api:team_list', request=request)
-        data['credentials'] = reverse('api:credential_list', request=request)
-        data['credential_types'] = reverse('api:credential_type_list', request=request)
-        data['credential_input_sources'] = reverse('api:credential_input_source_list', request=request)
-        data['applications'] = reverse('api:o_auth2_application_list', request=request)
-        data['tokens'] = reverse('api:o_auth2_token_list', request=request)
-        data['metrics'] = reverse('api:metrics_view', request=request)
-        data['inventory'] = reverse('api:inventory_list', request=request)
-        data['inventory_sources'] = reverse('api:inventory_source_list', request=request)
-        data['inventory_updates'] = reverse('api:inventory_update_list', request=request)
-        data['groups'] = reverse('api:group_list', request=request)
-        data['hosts'] = reverse('api:host_list', request=request)
-        data['job_templates'] = reverse('api:job_template_list', request=request)
-        data['jobs'] = reverse('api:job_list', request=request)
-        data['ad_hoc_commands'] = reverse('api:ad_hoc_command_list', request=request)
-        data['system_job_templates'] = reverse('api:system_job_template_list', request=request)
-        data['system_jobs'] = reverse('api:system_job_list', request=request)
-        data['schedules'] = reverse('api:schedule_list', request=request)
-        data['roles'] = reverse('api:role_list', request=request)
-        data['notification_templates'] = reverse('api:notification_template_list', request=request)
-        data['notifications'] = reverse('api:notification_list', request=request)
-        data['labels'] = reverse('api:label_list', request=request)
-        data['unified_job_templates'] = reverse('api:unified_job_template_list', request=request)
-        data['unified_jobs'] = reverse('api:unified_job_list', request=request)
-        data['activity_stream'] = reverse('api:activity_stream_list', request=request)
-        data['workflow_job_templates'] = reverse('api:workflow_job_template_list', request=request)
-        data['workflow_jobs'] = reverse('api:workflow_job_list', request=request)
-        data['workflow_approvals'] = reverse('api:workflow_approval_list', request=request)
-        data['workflow_job_template_nodes'] = reverse('api:workflow_job_template_node_list', request=request)
-        data['workflow_job_nodes'] = reverse('api:workflow_job_node_list', request=request)
-        data['mesh_visualizer'] = reverse('api:mesh_visualizer_view', request=request)
-        return Response(data)
+        data = APIVersionEntrypoints()
+        data.ping = reverse('api:api_v2_ping_view', request=request)
+        data.instances = reverse('api:instance_list', request=request)
+        data.instance_groups = reverse('api:instance_group_list', request=request)
+        data.config = reverse('api:api_v2_config_view', request=request)
+        data.settings = reverse('api:setting_category_list', request=request)
+        data.me = reverse('api:user_me_list', request=request)
+        data.dashboard = reverse('api:dashboard_view', request=request)
+        data.organizations = reverse('api:organization_list', request=request)
+        data.users = reverse('api:user_list', request=request)
+        data.execution_environments = reverse('api:execution_environment_list', request=request)
+        data.projects = reverse('api:project_list', request=request)
+        data.project_updates = reverse('api:project_update_list', request=request)
+        data.teams = reverse('api:team_list', request=request)
+        data.credentials = reverse('api:credential_list', request=request)
+        data.credential_types = reverse('api:credential_type_list', request=request)
+        data.credential_input_sources = reverse('api:credential_input_source_list', request=request)
+        data.applications = reverse('api:o_auth2_application_list', request=request)
+        data.tokens = reverse('api:o_auth2_token_list', request=request)
+        data.metrics = reverse('api:metrics_view', request=request)
+        data.inventory = reverse('api:inventory_list', request=request)
+        data.inventory_sources = reverse('api:inventory_source_list', request=request)
+        data.inventory_updates = reverse('api:inventory_update_list', request=request)
+        data.groups = reverse('api:group_list', request=request)
+        data.hosts = reverse('api:host_list', request=request)
+        data.job_templates = reverse('api:job_template_list', request=request)
+        data.jobs = reverse('api:job_list', request=request)
+        data.ad_hoc_commands = reverse('api:ad_hoc_command_list', request=request)
+        data.system_job_templates = reverse('api:system_job_template_list', request=request)
+        data.system_jobs = reverse('api:system_job_list', request=request)
+        data.schedules = reverse('api:schedule_list', request=request)
+        data.roles = reverse('api:role_list', request=request)
+        data.notification_templates = reverse('api:notification_template_list', request=request)
+        data.notifications = reverse('api:notification_list', request=request)
+        data.labels = reverse('api:label_list', request=request)
+        data.unified_job_templates = reverse('api:unified_job_template_list', request=request)
+        data.unified_jobs = reverse('api:unified_job_list', request=request)
+        data.activity_stream = reverse('api:activity_stream_list', request=request)
+        data.workflow_job_templates = reverse('api:workflow_job_template_list', request=request)
+        data.workflow_jobs = reverse('api:workflow_job_list', request=request)
+        data.workflow_approvals = reverse('api:workflow_approval_list', request=request)
+        data.workflow_job_template_nodes = reverse('api:workflow_job_template_node_list', request=request)
+        data.workflow_job_nodes = reverse('api:workflow_job_node_list', request=request)
+        data.mesh_visualizer = reverse('api:mesh_visualizer_view', request=request)
+        return Response(APIVersionEntrypointsSerializer(data).data)
 
 
 class ApiV2RootView(ApiVersionRootView):
@@ -136,7 +262,7 @@ class ApiV2PingView(APIView):
     permission_classes = (AllowAny,)
     authentication_classes = ()
     name = _('Ping')
-    swagger_topic = 'System Configuration'
+    openapi_tag = 'System Configuration'
 
     def get(self, request, format=None):
         """Return some basic information about this instance
@@ -171,7 +297,7 @@ class ApiV2PingView(APIView):
 class ApiV2SubscriptionView(APIView):
     permission_classes = (IsAuthenticated,)
     name = _('Subscriptions')
-    swagger_topic = 'System Configuration'
+    openapi_tag = 'System Configuration'
 
     def check_permissions(self, request):
         super(ApiV2SubscriptionView, self).check_permissions(request)
@@ -179,6 +305,9 @@ class ApiV2SubscriptionView(APIView):
             self.permission_denied(request)  # Raises PermissionDenied exception.
 
     def post(self, request):
+        '''
+        Register subscription key for Ansible Automation Platform
+        '''
         data = request.data.copy()
         if data.get('subscriptions_password') == '$encrypted$':
             data['subscriptions_password'] = settings.SUBSCRIPTIONS_PASSWORD
@@ -210,7 +339,7 @@ class ApiV2SubscriptionView(APIView):
 class ApiV2AttachView(APIView):
     permission_classes = (IsAuthenticated,)
     name = _('Attach Subscription')
-    swagger_topic = 'System Configuration'
+    openapi_tag = 'System Configuration'
 
     def check_permissions(self, request):
         super(ApiV2AttachView, self).check_permissions(request)
@@ -218,6 +347,9 @@ class ApiV2AttachView(APIView):
             self.permission_denied(request)  # Raises PermissionDenied exception.
 
     def post(self, request):
+        '''
+        Associate a subscription to an internal licence
+        '''
         data = request.data.copy()
         pool_id = data.get('pool_id', None)
         if not pool_id:
@@ -254,7 +386,7 @@ class ApiV2AttachView(APIView):
 class ApiV2ConfigView(APIView):
     permission_classes = (IsAuthenticated,)
     name = _('Configuration')
-    swagger_topic = 'System Configuration'
+    openapi_tag = 'System Configuration'
 
     def check_permissions(self, request):
         super(ApiV2ConfigView, self).check_permissions(request)
@@ -262,7 +394,9 @@ class ApiV2ConfigView(APIView):
             self.permission_denied(request)  # Raises PermissionDenied exception.
 
     def get(self, request, format=None):
-        '''Return various sitewide configuration settings'''
+        '''
+        Return various sitewide configuration settings
+        '''
 
         license_data = get_licenser().validate()
 
@@ -310,6 +444,10 @@ class ApiV2ConfigView(APIView):
         return Response(data)
 
     def post(self, request):
+        '''
+        Create various sitewide configuration settings
+        '''
+
         if not isinstance(request.data, dict):
             return Response({"error": _("Invalid subscription data")}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -354,6 +492,10 @@ class ApiV2ConfigView(APIView):
         return Response({"error": _("Invalid subscription")}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
+        '''
+        Delete various sitewide configuration settings
+        '''
+
         try:
             settings.LICENSE = {}
             return Response(status=status.HTTP_204_NO_CONTENT)

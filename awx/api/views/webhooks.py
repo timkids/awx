@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from awx.api import serializers
 from awx.api.generics import APIView, GenericAPIView
 from awx.api.permissions import WebhookKeyPermission
-from awx.main.models import Job, JobTemplate, WorkflowJob, WorkflowJobTemplate
+from awx.main.models import Job, JobTemplate, WorkflowJob, WorkflowJobTemplate, WebhookTemplateMixin
 from awx.main.constants import JOB_VARIABLE_PREFIXES
 
 logger = logging.getLogger('awx.api.views.webhooks')
@@ -24,6 +24,7 @@ logger = logging.getLogger('awx.api.views.webhooks')
 class WebhookKeyView(GenericAPIView):
     serializer_class = serializers.EmptySerializer
     permission_classes = (WebhookKeyPermission,)
+    model = WebhookTemplateMixin
 
     def get_queryset(self):
         qs_models = {'job_templates': JobTemplate, 'workflow_job_templates': WorkflowJobTemplate}
@@ -42,6 +43,24 @@ class WebhookKeyView(GenericAPIView):
         obj.save(update_fields=['webhook_key'])
 
         return Response({'webhook_key': obj.webhook_key}, status=status.HTTP_201_CREATED)
+
+
+class JobTemplateWebhookKey(WebhookKeyView):
+    '''
+    Webhook key for job template
+    '''
+
+    operation_id_base = 'JobTemplateWebhookKey'
+    openapi_tag = 'Job Templates'
+
+
+class WorkflowJobTemplateWebhookKey(WebhookKeyView):
+    '''
+    Webhook key for workflow job template
+    '''
+
+    operation_id_base = 'WorkflowJobTemplateWebhookKey'
+    openapi_tag = 'Workflow Job Templates'
 
 
 class WebhookReceiverBase(APIView):
@@ -189,8 +208,27 @@ class GithubWebhookReceiver(WebhookReceiverBase):
         return force_bytes(signature)
 
 
+class WorkflowJobTemplateGithubWebhookReceiver(GithubWebhookReceiver):
+    '''
+    Github webhook for workflow job template
+    '''
+
+    operation_id_base = 'WorkflowJobTemplateGithubWebhookReceiver'
+    openapi_tag = 'Workflow Job Templates'
+
+
+class JobTemplateGithubWebhookReceiver(GithubWebhookReceiver):
+    '''
+    Github webhook for job template
+    '''
+
+    operation_id_base = 'JobTemplateGithubWebhookReceiver'
+    openapi_tag = 'Job Templates'
+
+
 class GitlabWebhookReceiver(WebhookReceiverBase):
     service = 'gitlab'
+    operation_id_base = '{{ prefix }}GitlabWebhookReceiver'
 
     ref_keys = {'Push Hook': 'checkout_sha', 'Tag Push Hook': 'checkout_sha', 'Merge Request Hook': 'object_attributes.last_commit.id'}
 
@@ -226,3 +264,21 @@ class GitlabWebhookReceiver(WebhookReceiverBase):
         # analysis by attackers.
         if not hmac.compare_digest(force_bytes(obj.webhook_key), self.get_signature()):
             raise PermissionDenied
+
+
+class WorkflowJobTemplateGitlabWebhookReceiver(GitlabWebhookReceiver):
+    '''
+    Gitlab webhook for workflow job template
+    '''
+
+    operation_id_base = 'WorkflowJobTemplateGitlabWebhookReceiver'
+    openapi_tag = 'Workflow Job Templates'
+
+
+class JobTemplateGitlabWebhookReceiver(GitlabWebhookReceiver):
+    '''
+    Gitlab webhook for job template
+    '''
+
+    operation_id_base = 'JobTemplateGitlabWebhookReceiver'
+    openapi_tag = 'Job Templates'

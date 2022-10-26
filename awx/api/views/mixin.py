@@ -193,6 +193,6 @@ class OrganizationCountsMixin(object):
 class NoTruncateMixin(object):
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        if self.request.query_params.get('no_truncate'):
+        if self.request is not None and self.request.query_params.get('no_truncate'):
             context.update(no_truncate=True)
         return context

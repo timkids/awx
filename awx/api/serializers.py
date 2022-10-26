@@ -3117,7 +3117,8 @@ class JobDetailSerializer(JobSerializer):
 
 
 class JobCancelSerializer(BaseSerializer):
-    can_cancel = serializers.BooleanField(read_only=True)
+
+    can_cancel = serializers.BooleanField(read_only=True, help_text='Indicates whether this job can be canceled')
 
     class Meta:
         model = Job

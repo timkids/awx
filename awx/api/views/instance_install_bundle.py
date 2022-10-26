@@ -45,6 +45,7 @@ class InstanceInstallBundle(GenericAPIView):
     model = models.Instance
     serializer_class = serializers.InstanceSerializer
     permission_classes = (IsSystemAdminOrAuditor,)
+    operation_id_base = 'InstanceInstallBundle'
 
     def get(self, request, *args, **kwargs):
         instance_obj = self.get_object()
