@@ -1,6 +1,7 @@
 import json
 import warnings
 import re
+import inspect
 
 from coreapi.document import Object, Link
 
@@ -16,7 +17,16 @@ from rest_framework.schemas.utils import is_list_view
 from rest_framework.views import APIView
 from rest_framework.fields import empty
 
+from rest_framework.fields import _UnvalidatedField, empty, DecimalField
+from django.db import models
+
 from rest_framework_swagger import renderers
+
+from rest_framework import fields, relations
+
+from awx.api import fields as awx_fields
+from awx.sso import fields as awx_sso_fields
+from awx import conf
 
 
 class SuperUserSchemaGenerator(SchemaGenerator):
@@ -129,46 +139,6 @@ class AutoSchema(DRFAuthSchema):
         description = super(AutoSchema, self).get_description(path, method)
         return description
 
-    def map_serializer(self, serializer):
-        # Assuming we have a valid serializer instance.
-        required = []
-        properties = {}
-
-        for field in serializer.fields.values():
-            field_info = {}
-            if hasattr(self.view, 'model'):
-                serializer_info = self.view.metadata_class().get_serializer_info(serializer)
-                field_info = serializer_info[field.field_name]
-
-            if isinstance(field, serializers.HiddenField):
-                continue
-
-            if field.required:
-                required.append(field.field_name)
-
-            schema = self.map_field(field)
-            if field.read_only:
-                schema['readOnly'] = True
-            if field.write_only:
-                schema['writeOnly'] = True
-            if field.allow_null:
-                schema['nullable'] = True
-            if field.default is not None and field.default != empty and not callable(field.default):
-                schema['default'] = field.default
-            if field.help_text:
-                schema['description'] = str(field.help_text)
-            elif 'help_text' in field_info:
-                schema['description'] = str(field_info['help_text'])
-            self.map_field_validators(field, schema)
-
-            properties[field.field_name] = schema
-
-        result = {'type': 'object', 'properties': properties}
-        if required:
-            result['required'] = required
-
-        return result
-
     def get_operation_id_base(self, path, method, action):
         super_operation_id_base = super(AutoSchema, self).get_operation_id_base(path, method, action)
 
@@ -185,6 +155,108 @@ class AutoSchema(DRFAuthSchema):
             operation_id_base = str(self.view.__class__.__name__)
 
         return operation_id_base
+
+    def map_field(self, field):
+        result = super(AutoSchema, self).map_field(field)
+
+        STRING_FIELD_TRUE_TYPE = [
+            fields.URLField,
+            fields.CharField,
+            awx_fields.CharNullField,
+            awx_fields.VerbatimField,
+            awx_fields.OAuth2ProviderField,
+            fields.SerializerMethodField,
+            fields.ReadOnlyField,
+            fields.DateTimeField,
+            awx_fields.ChoiceNullField,
+            relations.PrimaryKeyRelatedField,
+            conf.fields.CharField,
+            fields.ChoiceField,
+            fields.DecimalField,
+        ]
+
+        AWX_KEY_VALUE_FIELDS_TYPE = [
+            awx_fields.OAuth2ProviderField,
+            conf.fields.KeyValueField,
+            awx_sso_fields.SocialOrganizationMapField,
+            awx_sso_fields.SocialTeamMapField,
+            awx_sso_fields.LDAPConnectionOptionsField,
+            awx_sso_fields.LDAPUserAttrMapField,
+            awx_sso_fields.LDAPUserFlagsField,
+            awx_sso_fields.LDAPOrganizationMapField,
+            awx_sso_fields.LDAPTeamMapField,
+            awx_sso_fields.SAMLUserFlagsAttrField,
+            awx_sso_fields.SAMLTeamAttrField,
+            awx_sso_fields.SAMLOrgAttrField,
+            awx_sso_fields.SAMLOrgInfoField,
+            awx_sso_fields.SAMLContactField,
+            awx_sso_fields.SAMLEnabledIdPsField,
+            awx_sso_fields.SAMLSecurityField,
+            awx_sso_fields.HybridDictField,
+        ]
+
+        if field.field_name == "SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS":
+            result = {'type': 'object', 'additionalProperties': {'type': 'string'}}
+
+        if isinstance(field, awx_sso_fields.LDAPGroupTypeParamsField):
+            result = {'type': 'array', 'items': {'type': 'object'}}
+
+        for key_value_field_type in AWX_KEY_VALUE_FIELDS_TYPE:
+            if isinstance(field, key_value_field_type):
+                result = {'type': 'object', 'additionalProperties': {'type': 'string'}}
+
+        AWX_FIELD_CLASS_SCHEMA_TYPE = {
+            awx_fields.BooleanNullField: 'boolean',
+            awx_fields.CharNullField: 'string',
+            awx_fields.VerbatimField: 'string',
+            fields.BooleanField: 'boolean',
+        }
+
+        for field_type in AWX_FIELD_CLASS_SCHEMA_TYPE:
+            if isinstance(field, field_type):
+                result = {'type': AWX_FIELD_CLASS_SCHEMA_TYPE[field_type]}
+
+        return result
+
+    def map_serializer(self, serializer):
+        # Assuming we have a valid serializer instance.
+        required = []
+        properties = {}
+
+        for field in serializer.fields.values():
+            if isinstance(field, serializers.HiddenField):
+                continue
+
+            if field.required:
+                required.append(field.field_name)
+
+            schema = self.map_field(field)
+            if field.read_only:
+                schema['readOnly'] = True
+            if field.write_only:
+                schema['writeOnly'] = True
+            if field.allow_null:
+                schema['nullable'] = True
+            if field.default is not None and field.default != empty and not callable(field.default):
+                if isinstance(field, DecimalField) or isinstance(field, awx_fields.ChoiceNullField):
+                    schema['default'] = str(field.default)
+                else:
+                    schema['default'] = field.default
+            if field.help_text:
+                schema['description'] = str(field.help_text)
+            self.map_field_validators(field, schema)
+
+            properties[field.field_name] = schema
+            print("Field name ==> {}".format(field.field_name))
+            print("Field default ==> {}".format(field.default))
+            print("Class hierarchy => {}".format(field.__class__.__mro__))
+            print("Result ==> {}".format(schema))
+
+        result = {'type': 'object', 'properties': properties}
+        if required:
+            result['required'] = required
+
+        return result
 
 
 class SwaggerSchemaView(APIView):

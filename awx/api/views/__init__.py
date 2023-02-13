@@ -1093,7 +1093,6 @@ class OAuth2ApplicationList(ListCreateAPIView):
 
 
 class OAuth2AppsApplicationList(OAuth2ApplicationList):
-
     operation_id_base = 'OAuth2AppsApplicationList'
 
 
